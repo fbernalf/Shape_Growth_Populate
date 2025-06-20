@@ -6,21 +6,12 @@ const Dim = 3 # Changez ceci à 2 pour 2D, à 3 pour 3D
 # ------------------------------------
 
 # Ces fonctions doivent être définies AVANT d'être passées à set_max_function!
-fct7(cell::ShapeGrowthModels.Cell{Dim}) = 15
+fct7(cell::ShapeGrowthModels.Cell{Dim}) = 5
 fct8(cell::ShapeGrowthModels.Cell{Dim}) = 15
-fct9(cell::ShapeGrowthModels.Cell{Dim}) = 15
+fct9(cell::ShapeGrowthModels.Cell{Dim}) = 5
 
-function generate_and_sample(num_types::Int)
-    # Créer un vecteur d'entiers aléatoires pour les types de cellules
-    vecteur_aleatoire = rand(4:9, 10)
-    println("Vecteur aléatoire généré pour cell_type_sequence : ", vecteur_aleatoire)
-    return vecteur_aleatoire
-end
-
-# Choisir le nombre de types de cellules en fonction du nombre de fonctions générées
-num_cell_types = 4
 xml_file="../xml/cellTypes130.xml"
-cell_type_sequence=cell_type_sequence = generate_and_sample(num_cell_types)
+cell_type_sequence=[7, 8, 9, 7]#128,
 num_steps = 10
 dist_cellule_fibroblast = 1000.0
 
@@ -79,7 +70,6 @@ ShapeGrowthModels.run!(model, num_steps=50) # Nombre d'étapes augmenté pour un
 println("Simulation terminée.")
 
 # Visualisation des résultats
-# Visualisation des résultats
 script_name = if Base.source_path() !== nothing
     splitext(basename(Base.source_path()))[1]
 else
@@ -88,20 +78,30 @@ end
 output_directory = "../expl/"
 filename = joinpath(output_directory, "$(script_name)_Dim$(Dim).gif") # Ajout de la dimension au nom du fichier
 
-println("DEBUG: Script de simulation terminé.")
 
- 
-if Dim == 2 
-    animation_filename = joinpath(output_directory, "simulation_history_Dim2.gif")
-    ShapeGrowthModels.visualize_history_animation(model, animation_filename)
+#= 
 
-   # filename = joinpath(output_directory, "flag_Dim2.png") # <--- Changed from .gif to .png
-    #ShapeGrowthModels.visualize(model, filename)
+# Conditional visualization call
+if DIM == 2
+    filename = joinpath(output_directory, "simulation_2D_state.png")
+    ShapeGrowthModels.visualize(model, filename)
 else # Implies DIM == 3
-    output_frames_dir = joinpath(output_directory, "3D_history_frames")
-    ShapeGrowthModels.visualize_history_3D_frames(model, output_frames_dir)
-    println("DEBUG: Les frames 3D interactives de l'historique sont dans le dossier: ", output_frames_dir)
-#filename = joinpath(output_directory, "simulation_3D_state.html")
-#    ShapeGrowthModels.visualize_3D_plotly(model, filename)
-end 
+    # Change this line:
+    filename = joinpath(output_directory, "simulation_3D_state.png") # Changed from .gif to .png
+    # OR, for an interactive plot:
+    # filename = joinpath(output_directory, "simulation_3D_state.html") # Changed from .gif to .html
+
+    ShapeGrowthModels.visualize_3D_plotly(model, filename)
+end =#
+
+
+if Dim == 2
+    ShapeGrowthModels.visualize(model, filename)
+else
+    # Pour 3D, on peut choisir de visualiser en 2D ou 3D selon les besoins
+    # Ici, on visualise en 2D en projetant sur le plan XY
+    ShapeGrowthModels.visualize_3D_plotly(model, filename) # Vue en 2D
+end
+
+
 println("Exécution du script terminée.")

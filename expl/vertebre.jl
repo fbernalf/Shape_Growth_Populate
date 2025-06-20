@@ -2,7 +2,7 @@ using ShapeGrowthModels
 using Plots # S'assurer que Plots est chargé
 
 # --- CONFIGURATION DE LA DIMENSION ---
-const Dim = 2 # Changez ceci à 2 pour 2D, à 3 pour 3D
+const DIM = 2 # Changez ceci à 2 pour 2D, à 3 pour 3D
 # ------------------------------------
 
 # Ces fonctions doivent être définies AVANT d'être passées à set_max_function!
@@ -76,20 +76,7 @@ end
 output_directory = "../expl/"
 filename = joinpath(output_directory, "$(script_name)_Dim$(DIM).gif") # Ajout de la dimension au nom du fichier
 
-
-if Dim == 2 
-    animation_filename = joinpath(output_directory, "simulation_history_Dim2.gif")
-    ShapeGrowthModels.visualize_history_animation(model, animation_filename)
-
-   # filename = joinpath(output_directory, "flag_Dim2.png") # <--- Changed from .gif to .png
-    #ShapeGrowthModels.visualize(model, filename)
-else # Implies DIM == 3
-    output_frames_dir = joinpath(output_directory, "3D_history_frames")
-    ShapeGrowthModels.visualize_history_3D_frames(model, output_frames_dir)
-    println("DEBUG: Les frames 3D interactives de l'historique sont dans le dossier: ", output_frames_dir)
-#filename = joinpath(output_directory, "simulation_3D_state.html")
-#    ShapeGrowthModels.visualize_3D_plotly(model, filename)
-end 
+ShapeGrowthModels.visualize(model, filename)
 
 println("Exécution du script terminée.")
 

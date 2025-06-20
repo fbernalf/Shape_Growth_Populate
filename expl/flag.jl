@@ -1,4 +1,5 @@
-using ShapeGrowthModels
+# expl/flag.jl
+using Shape_Growth_Populate
 using Plots # S'assurer que Plots est chargé
 
 # --- CONFIGURATION DE LA DimENSION ---
@@ -6,11 +7,13 @@ const Dim = 3 # Changez ceci à 2 pour 2D, à 3 pour 3D
 # ------------------------------------
 
 # Ces fonctions doivent être définies AVANT d'être passées à set_max_function!
-fct7(cell::ShapeGrowthModels.Cell{Dim}) = 5
-fct8(cell::ShapeGrowthModels.Cell{Dim}) = 15
-fct9(cell::ShapeGrowthModels.Cell{Dim}) = 5
+fct7(cell::Shape_Growth_Populate.Cell{Dim}) = 5
+fct8(cell::Shape_Growth_Populate.Cell{Dim}) = 15
+fct9(cell::Shape_Growth_Populate.Cell{Dim}) = 5
 
-xml_file="../xml/cellTypes130.xml"
+#xml_dir = joinpath(dirname(@__FILE__),"..", "xml") # This should lead to your xml folder
+#xml_file_path = joinpath(xml_dir, "cellTypes130.xml")
+xml_file_path = "xml/cellTypes130.xml"
 cell_type_sequence=[7, 8, 9, 7]#128,
 num_steps = 10
 dist_cellule_fibroblast = 1000.0
@@ -38,18 +41,15 @@ end
 
 
 
-my_initial_cells_dict = ShapeGrowthModels.create_default_initial_cells_dict(
+my_initial_cells_dict = Shape_Growth_Populate.create_default_initial_cells_dict(
     Val(Dim), 
     initial_cell_origin, 
     cell_type_sequence[1])
 
 
-
-
-
-model = ShapeGrowthModels.CellModel{Dim}(
+model = Shape_Growth_Populate.CellModel{Dim}(
     initial_cells_dict = my_initial_cells_dict, # This should still be a CellSetByCoordinates
-    xml_file = xml_file,
+    xml_file = xml_file_path,
     cell_type_sequence = cell_type_sequence,
     grid_size = grid_size,
     initial_stromal_cells_dict = nothing
@@ -60,13 +60,13 @@ model = ShapeGrowthModels.CellModel{Dim}(
 
 
 # Définition des fonctions de calcul de max_divisions pour chaque type de cellule
-ShapeGrowthModels.set_max_function!(model, 7, fct7)
-ShapeGrowthModels.set_max_function!(model, 8, fct8)
-ShapeGrowthModels.set_max_function!(model, 9, fct9)
+Shape_Growth_Populate.set_max_function!(model, 7, fct7)
+Shape_Growth_Populate.set_max_function!(model, 8, fct8)
+Shape_Growth_Populate.set_max_function!(model, 9, fct9)
 
 println("Démarrage de la simulation...")
 # Exécution de la simulation
-ShapeGrowthModels.run!(model, num_steps=50) # Nombre d'étapes augmenté pour une meilleure visibilité
+Shape_Growth_Populate.run!(model, num_steps=50) # Nombre d'étapes augmenté pour une meilleure visibilité
 println("Simulation terminée.")
 
 # Visualisation des résultats
@@ -75,34 +75,34 @@ script_name = if Base.source_path() !== nothing
 else
     "simulation_script" # Nom par défaut si exécuté dans la REPL
 end
-output_directory = "../expl/"
-filename = joinpath(output_directory, "$(script_name)_Dim$(Dim).gif") # Ajout de la dimension au nom du fichier
+output_directory = "expl/"
+#filename = joinpath(output_directory, "$(script_name)_Dim$(Dim).gif") # Ajout de la dimension au nom du fichier
 
 
 #= if Dim == 2
     animation_filename = joinpath(output_directory, "simulation_history_Dim2.gif")
-    ShapeGrowthModels.visualize_history_animation(model, animation_filename)
+    Shape_Growth_Populate.visualize_history_animation(model, animation_filename)
 else # Cela implique DIM == 3
     # Le nom de fichier pour le graphique HTML interactif avec slider
     output_filename_with_slider = joinpath(output_directory, "simulation_history_3D_slider.html")
-    ShapeGrowthModels.visualize_history_3D_plotly_with_slider(model, output_filename_with_slider)
+    Shape_Growth_Populate.visualize_history_3D_plotly_with_slider(model, output_filename_with_slider)
     println("DEBUG: Visualisation 3D interactive avec slider sauvegardée : ", output_filename_with_slider)
 end =#
 
 println("DEBUG: Script de simulation terminé.")
 
- 
-if Dim == 2 
+
+ if Dim == 2 
     animation_filename = joinpath(output_directory, "simulation_history_Dim2.gif")
-    ShapeGrowthModels.visualize_history_animation(model, animation_filename)
+    Shape_Growth_Populate.visualize_history_animation(model, animation_filename)
 
    # filename = joinpath(output_directory, "flag_Dim2.png") # <--- Changed from .gif to .png
-    #ShapeGrowthModels.visualize(model, filename)
+    #Shape_Growth_Populate.visualize(model, filename)
 else # Implies DIM == 3
     output_frames_dir = joinpath(output_directory, "3D_history_frames")
-    ShapeGrowthModels.visualize_history_3D_frames(model, output_frames_dir)
+    Shape_Growth_Populate.visualize_history_3D_frames(model, output_frames_dir)
     println("DEBUG: Les frames 3D interactives de l'historique sont dans le dossier: ", output_frames_dir)
-#filename = joinpath(output_directory, "simulation_3D_state.html")
-#    ShapeGrowthModels.visualize_3D_plotly(model, filename)
+filename = joinpath(output_directory, "simulation_3D_state.html")
+#    Shape_Growth_Populate.visualize_3D_plotly(model, filename)
 end 
 println("Exécution du script terminée.")
