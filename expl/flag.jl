@@ -56,9 +56,6 @@ model = Shape_Growth_Populate.CellModel{Dim}(
 )
 
 
-
-
-
 # Définition des fonctions de calcul de max_divisions pour chaque type de cellule
 Shape_Growth_Populate.set_max_function!(model, 7, fct7)
 Shape_Growth_Populate.set_max_function!(model, 8, fct8)

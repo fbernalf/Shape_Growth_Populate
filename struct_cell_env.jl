@@ -25,6 +25,7 @@ end
     is_alive::Bool = true # Example default
     has_proliferated_this_step::Bool = false # Example default
 end
+
 struct SystemState
     cells::Vector{Cell}
     stromal_cells::Vector{StromalCell}
@@ -134,3 +135,6 @@ end
     fractones::Dict{NTuple{Dim, Int64}, Any} = Dict{NTuple{Dim, Int64}, Any}() # Example
     growth_factors::Dict{NTuple{Dim, Int64}, Float64} = Dict{NTuple{Dim, Int64}, Float64}() # Example
 end
+
+#growth_factor_example = {(x,y){2, entero}, any}
+#fractones are represented by a matrix

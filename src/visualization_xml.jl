@@ -111,59 +111,58 @@ using Plots # Assurez-vous que Plots est bien chargé
 Crée une animation GIF de l'historique de la simulation pour un modèle 2D.
 """
 function visualize_history_animation(model::CellModel{2}, output_filename::String)
-    # Assurez-vous que le nom de fichier se termine par .gif
     if !endswith(output_filename, ".gif")
         output_filename *= ".gif"
     end
 
     grid_width, grid_height = model.grid_size
-    
-    # Préparez la fonction qui dessine une seule image
-    # Cette fonction sera appelée pour chaque entrée dans model.history
+
+    # Mapa de colores por tipo celular
+    color_map = Dict(
+        0 => RGBA(1,1,1,1),       # Fondo blanco
+        130 => :blue,
+        7 => :darkgreen,
+        8 => :lightgreen,
+        9 => :yellow,
+        10 => :orange,
+        201 => :gray,
+        202 => :lightgray,
+        203 => :silver,
+        204 => :black
+    )
+
     animation_plot_function = function(history_entry)
-        cells_to_plot = history_entry.cells # Accéder au dictionnaire des cellules
-        
+        cells_to_plot = history_entry.cells
         plot_matrix = zeros(Int, grid_width, grid_height)
 
         for (coords, cell) in cells_to_plot
             x, y = coords
-            plot_matrix[y, x] = cell.cell_type # Assurez-vous que le cell_type est un Int
+            plot_matrix[y, x] = cell.cell_type
         end
 
-        # Vous pouvez ajouter ici la logique de visualisation du bassin de capture
-        # Si vous avez un `compute_capture_basin` qui prend le `model` et les `cells_to_plot`
-        # et retourne un ensemble de coordonnées pour le bassin.
-        # Exemple (non testé, dépend de votre implémentation de capture_basin) :
-        # current_K_cells_dict = Shape_Growth_Populate.construct_K_cells_dict(model.grid_size) # Si nécessaire
-        # basin_coords = Shape_Growth_Populate.compute_capture_basin(model, cells_to_plot, current_K_cells_dict, model.cell_type_sequence)
-        # for (bx, by) in basin_coords
-        #     plot_matrix[by, bx] = some_basin_value # Ex: 99 pour le bassin
-        # end
+        # Crear vector de colores en orden de aparición
+        unique_types = sort(collect(keys(color_map)))
+        palette = [get(color_map, t, :magenta) for t in unique_types]
 
         p = Plots.heatmap(
             plot_matrix,
             aspect_ratio = :equal,
-            title = "Simulation Time: $(model.current_time)", # Ajoutez le temps si disponible
+            title = "Tiempo: $(model.current_time)",
             xlabel = "X", ylabel = "Y",
-            colorbar_title = "Cell Type",
             xticks = :none, yticks = :none,
-            # Définissez une palette de couleurs si vous avez des valeurs spécifiques (types de cellules, bassin)
-            # colors = cgrad([:white, :red, :blue, :green, :orange], [0, 1, 2, 3, 99]) # Exemple
+            color = palette,
+            colorbar = false
         )
         return p
     end
 
-    # Utilisez la macro @animate pour créer l'animation
-    # Il itère sur model.history et appelle la fonction pour chaque entrée
     anim = @animate for history_entry in model.history
         animation_plot_function(history_entry)
     end
 
-    # Sauvegardez l'animation au format GIF
-    Plots.gif(anim, output_filename, fps = 5) # fps = frames per second
-    println("DEBUG: Animation 2D de l'historique sauvegardée dans ", output_filename)
+    Plots.gif(anim, output_filename, fps = 5)
+    println("Animación guardada en: $output_filename")
 end
-
 
 
 """

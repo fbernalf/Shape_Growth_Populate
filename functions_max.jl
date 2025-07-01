@@ -21,6 +21,7 @@ function euclidean_distance(coords1::NTuple{Dim, Int64}, coords2::NTuple{Dim, In
     end
     return sqrt(sum_sq_diff)
 end
+
 function angle(coords::NTuple{3, Int64}; center::NTuple{3, Int64} = (50, 50))
     dx = coords[1] - center[1]
     dy = coords[2] - center[2]

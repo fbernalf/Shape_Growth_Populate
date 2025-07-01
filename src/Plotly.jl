@@ -1,10 +1,10 @@
 using PlotlyJS, CSV, DataFrames
-df = dataset(DataFrame, "iris")
-plot(
-    df,
-    x=:sepal_length, y=:sepal_width, z=:petal_width, color=:species,
-    type="scatter3d", mode="markers"
-)
+#df = dataset(DataFrame, "iris")
+#plot(
+#    df,
+#    x=:sepal_length, y=:sepal_width, z=:petal_width, color=:species,
+#    type="scatter3d", mode="markers"
+#)
 
 #= using PlotlyJS, CSV, DataFrames
 

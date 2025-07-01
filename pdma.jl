@@ -35,74 +35,6 @@ function _update_on_successful_proliferation!(next_cells::Dict{NTuple{Dim, Int64
     end
 end
 
-"""Simulates one step of cellular evolution."""
-#= function attempt_proliferation!(model::CellModel{Dim} ,next_cells::Dict{NTuple{Dim, Int64}, Cell{Dim}}, cell::Cell{Dim}, cell_directions_int::Vector{Int64}, directions::Vector{NTuple{Dim, Int64}}, max_cell_division::Real) where Dim
-    
-    max_div = convert(Int64, max_cell_division)
-    
-    # Return (action_occurred, proliferated_count, differenciation_count, apoptosis_count, converted_to_stromal_count)  
-    if !cell.is_alive || cell.nbdiv >= max_div || cell.has_proliferated_this_step
-        return (false, 0, 0, 0, 0)
-    end
-
-    found_close_stromal_cell = false
-    if !isempty(model.stromal_cells)
-        for (stromal_coord, _) in model.stromal_cells
-            # Assuming euclidean_distance is defined (e.g., in pdma.jl or another included file)
-            if euclidean_distance(cell.coordinates, stromal_coord) <= model.dist_cellule_fibroblast
-                found_close_stromal_cell = true
-                break
-            end
-        end
-    end
-    
-    if !found_close_stromal_cell
-
-        #differentiation!(next_cells, cell, model.cell_type_sequence[cell.current_type_index_in_sequence+1]) # Differenciate to next_index_in_sequence 
-        try_differentiate!(model, next_cells, model.cells, model.cell_type_sequence, model.processed_proliferation_directions, max_div, model.grid_size, cell.cell_type)
-        new_stromal_cell = Shape_Growth_Populate.StromalCell{Dim}(
-                cell.coordinates,
-                cell.timer,
-                cell.cell_type,
-                cell.cell_type,
-                cell.cell_type,
-                0,
-                0, # max_divisions_allowed
-                true, # is_alive
-                false # proliferated_this_step
-            )
-        model.stromal_cells[cell.coordinates] = new_stromal_cell
-        
-        return (true, 0, 0, 0, 1) # Action occurred, 0 proliferated, 1 apoptosis (cell replaced by stromal), true converted
-    end
-    
-    original_cell = deepcopy(cell)
-    initial_type_this_step = cell.cell_type
-    
-    parent_coords = cell.coordinates
-
-    for (i, dir) in enumerate(directions)
-        if cell_directions_int[i] == 0
-            if haskey(next_cells, parent_coords)
-                apoptosis!(next_cells, original_cell) 
-                return (true, 0, 0, 1, 0) # Propagate the flag
-            end
-        elseif cell_directions_int[i] != 1
-            temp_next_cells = deepcopy(next_cells)
-            if try_proliferate!(model, temp_next_cells, cell, dir, max_div)
-                _update_on_successful_proliferation!(next_cells, temp_next_cells, parent_coords)
-                return (true, 1, 0, 0, 0) # Propagate the flag
-            end
-        end
-    end
-
-    if !haskey(next_cells, parent_coords)
-        next_cells[parent_coords] = original_cell
-        next_cells[parent_coords].cell_type = initial_type_this_step
-    end
-
-    return (false, 0, 0, 0, 0) # Propagate the flag
-end =#
 function attempt_proliferation!(
     model::CellModel{Dim} ,
     next_cells::Dict{NTuple{Dim, Int64}, Cell{Dim}}, 
@@ -133,17 +65,9 @@ function attempt_proliferation!(
     
     if !found_close_stromal_cell && !isnothing(model.stromal_cells) && !isempty(model.stromal_cells)
 
-        # Logic for converting a cell to stromal if no close stromal cell is found.
-        # This implies the cell converts INSTEAD of proliferating or differentiating through other means.
-        
-        # Ensure model.stromal_cells is initialized as a Dict if it's currently nothing
         if isnothing(model.stromal_cells)
             model.stromal_cells = Dict{NTuple{Dim, Int64}, Shape_Growth_Populate.StromalCell{Dim}}()
         end
-
-        # Create the new stromal cell
-        # You might want to assign a specific stromal cell type (e.g., DEFAULT_STROMAL_CELL_TYPE)
-        # instead of using cell.cell_type for the new stromal cell.
         new_stromal_cell = Shape_Growth_Populate.StromalCell{Dim}(
                 cell.coordinates,
                 cell.timer,
@@ -162,14 +86,8 @@ function attempt_proliferation!(
         if haskey(next_cells, cell.coordinates)
             apoptosis!(next_cells, cell) # Remove original cell from next_cells if it's there
         else
-            # If not in next_cells, we need to ensure it's not processed later
-            # (e.g., mark as dead, or ensure it's not added back if not already)
-            # For simplicity, if it becomes stromal, it's no longer the original cell.
-            # So, we should treat it as 'apoptotic' for the original cell type.
-            # This is a conceptual 'apoptosis' where it transforms.
         end
         
-        # Return 1 for converted_to_stromal and 1 for apoptosis (loss of original cell)
         return (true, 0, 0, 1, 1) # Action occurred, 0 proliferated, 0 differentiated, 1 apoptosis, 1 converted to stromal
     end
     
@@ -211,30 +129,6 @@ function differentiation!(next_cells::Dict{NTuple{Dim, Int64}, Cell{Dim}}, cell:
         next_cells[cell.coordinates] = cell
     end
 end
-
-
-
-#= function _handle_differentiation!(model::CellModel{Dim}, next_cells_dict::Dict{NTuple{Dim, Int64}, Cell{Dim}}, current_cells::Dict{NTuple{Dim, Int64}, Cell{Dim}}, cell_type::Int64, cell_type_sequence::Vector{Int64}, proliferation_directions::Dict{Int64, Vector{NTuple{Dim, Int64}}}, grid_size::NTuple{Dim, Int64})::Int64 where Dim
-    cells_differentiated_this_step = 0
-    cells_for_differentiation = [cell for cell in values(current_cells) if cell.is_alive && cell.cell_type == cell_type && !cell.has_proliferated_this_step]
-    for cell in cells_for_differentiation
-        if haskey(next_cells_dict, cell.coordinates)
-            current_state_of_cell = next_cells_dict[cell.coordinates]
-            if !isnothing(current_state_of_cell) && (!current_state_of_cell.is_alive || current_state_of_cell.has_proliferated_this_step)
-                continue
-            end
-        end
-        if cell.is_alive && !cell.has_proliferated_this_step
-            max_cell_division = calculate_max_divisions(model, cell)
-            if try_differentiate!(model, next_cells_dict, current_cells, cell_type_sequence, proliferation_directions, convert(Int64, max_cell_division), grid_size, cell_type)
-                cells_differentiated_this_step += 1
-            end
-        end
-    end
-    return cells_differentiated_this_step
-end
- =#
-
 
 """Attempts to differentiate cells and then make them proliferate."""
 function _restore_cell_state!(next_cells::Dict{NTuple{Dim, Int64}, Cell{Dim}}, cell::Cell{Dim}, original_cell_type::Int64, original_nbdiv::Int64) where Dim
